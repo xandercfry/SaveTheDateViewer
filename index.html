@@ -1,0 +1,388 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Image Viewer</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: system-ui, sans-serif;
+      background: #f4f4f2;
+      color: #1a1a1a;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 2rem 1rem;
+    }
+
+    h1 {
+      font-size: 1.25rem;
+      font-weight: 500;
+      margin-bottom: 1.5rem;
+      color: #444;
+    }
+
+    .gallery {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 3px;
+      width: 100%;
+      max-width: 960px;
+    }
+
+    .panel {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      background: #fff;
+      border: 1px solid #e0e0da;
+      border-radius: 4px;
+      padding: 6px;
+    }
+
+    .panel-title {
+      font-size: 13px;
+      font-weight: 500;
+      color: #888;
+      text-align: center;
+      letter-spacing: 0.03em;
+    }
+
+    .controls {
+      display: flex;
+      gap: 6px;
+      align-items: center;
+    }
+
+    .controls input[type="number"] {
+      width: 60px;
+      padding: 6px 8px;
+      font-size: 14px;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+      outline: none;
+      background: #fafaf8;
+    }
+
+    .controls input[type="number"]:focus {
+      border-color: #888;
+    }
+
+    .btn {
+      padding: 6px 12px;
+      font-size: 13px;
+      cursor: pointer;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+      background: #fafaf8;
+      color: #333;
+      transition: background 0.15s, border-color 0.15s;
+    }
+
+    .btn:hover {
+      background: #efefeb;
+      border-color: #aaa;
+    }
+
+    .btn:active {
+      background: #e5e5e0;
+    }
+
+    .btn-rand {
+      border-color: #b0c4e0;
+      color: #2a5fa0;
+      background: #f0f5fc;
+    }
+
+    .btn-rand:hover {
+      background: #ddeaf8;
+      border-color: #7aaad0;
+    }
+
+    .img-box {
+      width: 100%;
+      min-height: 160px;
+      background: #f0f0ec;
+      border: 1px solid #e0e0da;
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 6px;
+    }
+
+    .img-box img {
+      max-width: 100%;
+      max-height: 420px;
+      width: auto;
+      height: auto;
+      display: block;
+      border-radius: 4px;
+    }
+
+    .placeholder {
+      font-size: 13px;
+      color: #aaa;
+      text-align: center;
+      padding: 1rem;
+      line-height: 1.5;
+    }
+
+    .img-label {
+      font-size: 12px;
+      color: #aaa;
+      text-align: center;
+      min-height: 16px;
+    }
+
+    /* Reference table */
+    .ref-section {
+      margin-top: 2rem;
+      width: 100%;
+      max-width: 960px;
+    }
+
+    .ref-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 8px;
+    }
+
+    .ref-section h2 {
+      font-size: 13px;
+      font-weight: 500;
+      color: #888;
+      letter-spacing: 0.03em;
+    }
+
+    .ref-slot-row {
+      display: flex;
+      align-items: center;
+      gap: 7px;
+      font-size: 13px;
+      color: #888;
+    }
+
+    .ref-slot-row select {
+      padding: 4px 8px;
+      font-size: 13px;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+      background: #fafaf8;
+      color: #333;
+      cursor: pointer;
+    }
+
+    .ref-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 13px;
+      background: #fff;
+      border: 1px solid #e0e0da;
+      border-radius: 10px;
+      overflow: hidden;
+    }
+
+    .ref-table th {
+      background: #f4f4f2;
+      color: #888;
+      font-weight: 500;
+      text-align: left;
+      padding: 7px 12px;
+      border-bottom: 1px solid #e0e0da;
+    }
+
+    .ref-table td {
+      padding: 5px 12px;
+      border-bottom: 1px solid #f0f0ec;
+      color: #444;
+    }
+
+    .ref-table tr:last-child td { border-bottom: none; }
+
+    .ref-table tr:hover td { background: #fafaf8; cursor: pointer; }
+
+    .ref-num { font-weight: 500; color: #2a5fa0; width: 50px; }
+    .ref-file { font-family: monospace; font-size: 12px; color: #555; }
+
+    .note {
+      margin-top: 1rem;
+      font-size: 12px;
+      color: #bbb;
+      text-align: center;
+      max-width: 600px;
+      line-height: 1.6;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>Image Viewer</h1>
+
+  <div class="gallery">
+    <div class="panel" data-slot="0">
+      <div class="panel-title">Slot 1</div>
+      <div class="controls">
+        <input type="number" min="1" placeholder="#" title="Enter image number" />
+        <button class="btn btn-go">Go</button>
+        <button class="btn btn-rand">&#x21bb; Random</button>
+      </div>
+      <div class="img-box">
+        <div class="placeholder">Enter a number<br>and press Go or Enter</div>
+      </div>
+      <div class="img-label"></div>
+    </div>
+
+    <div class="panel" data-slot="1">
+      <div class="panel-title">Slot 2</div>
+      <div class="controls">
+        <input type="number" min="1" placeholder="#" title="Enter image number" />
+        <button class="btn btn-go">Go</button>
+        <button class="btn btn-rand">&#x21bb; Random</button>
+      </div>
+      <div class="img-box">
+        <div class="placeholder">Enter a number<br>and press Go or Enter</div>
+      </div>
+      <div class="img-label"></div>
+    </div>
+
+    <div class="panel" data-slot="2">
+      <div class="panel-title">Slot 3</div>
+      <div class="controls">
+        <input type="number" min="1" placeholder="#" title="Enter image number" />
+        <button class="btn btn-go">Go</button>
+        <button class="btn btn-rand">&#x21bb; Random</button>
+      </div>
+      <div class="img-box">
+        <div class="placeholder">Enter a number<br>and press Go or Enter</div>
+      </div>
+      <div class="img-label"></div>
+    </div>
+  </div>
+
+  <div class="ref-section">
+    <div class="ref-header">
+      <h2>Image Index</h2>
+      <div class="ref-slot-row">
+        <label for="slotSelect">Send to:</label>
+        <select id="slotSelect">
+          <option value="0">Slot 1</option>
+          <option value="1">Slot 2</option>
+          <option value="2">Slot 3</option>
+        </select>
+      </div>
+    </div>
+    <table class="ref-table" id="refTable">
+      <thead>
+        <tr>
+          <th class="ref-num">#</th>
+          <th class="ref-file">Filename</th>
+        </tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+  </div>
+
+  <p class="note">Images folder: <code>Engagement_Images/</code> — located next to this HTML file.</p>
+
+  <script>
+    // ─── IMAGE LOOKUP TABLE ───────────────────────────────────────────────────
+    // Add or remove entries here. The number on the left is what you type.
+    const IMAGE_MAP = {
+       1: "A-12.jpg",
+       2: "A-27.jpg",
+       3: "B-4.jpg",
+       4: "B-19.jpg",
+       5: "B-32.jpg",
+       6: "B-73.jpg",
+       7: "B-83.jpg",
+       8: "B-100.jpg",
+       9: "B-116.jpg",
+      10: "B-134.jpg",
+      11: "B-152.jpg",
+      12: "B-238.jpg",
+      13: "B-307.jpg",
+      14: "ENXS-1.jpg",
+      15: "ENXS-4.jpg",
+      16: "ENXS-8.jpg",
+      17: "ENXS-16.jpg",
+    };
+
+    const IMAGE_FOLDER = "Engagement_Images/";
+    // ──────────────────────────────────────────────────────────────────────────
+
+    // Build reference table
+    const tbody = document.querySelector("#refTable tbody");
+    const slotSelect = document.getElementById("slotSelect");
+    const panels = Array.from(document.querySelectorAll(".panel"));
+
+    Object.entries(IMAGE_MAP).forEach(([num, filename]) => {
+      const tr = document.createElement("tr");
+      tr.innerHTML = `<td class="ref-num">${num}</td><td class="ref-file">${filename}</td>`;
+      tr.addEventListener("click", () => {
+        const targetPanel = panels[parseInt(slotSelect.value)];
+        const input = targetPanel.querySelector("input[type='number']");
+        input.value = num;
+        loadImage(targetPanel, parseInt(num));
+      });
+      tbody.appendChild(tr);
+    });
+
+    function loadImage(panel, num) {
+      const box   = panel.querySelector(".img-box");
+      const label = panel.querySelector(".img-label");
+      const filename = IMAGE_MAP[num];
+
+      if (!filename) {
+        box.innerHTML = `<div class="placeholder">No image mapped to #${num}.<br>Check the IMAGE_MAP in the script.</div>`;
+        label.textContent = "";
+        return;
+      }
+
+      const src = IMAGE_FOLDER + filename;
+      box.innerHTML = `<div class="placeholder">Loading…</div>`;
+      label.textContent = "";
+
+      const img = new Image();
+      img.src = src;
+      img.alt = filename;
+      img.onload = () => {
+        box.innerHTML = "";
+        box.appendChild(img);
+        label.textContent = `#${num} — ${filename}`;
+      };
+      img.onerror = () => {
+        box.innerHTML = `<div class="placeholder">${filename}<br>not found in Engagement_Images/</div>`;
+        label.textContent = "";
+      };
+    }
+
+    const imageKeys = Object.keys(IMAGE_MAP).map(Number);
+
+    document.querySelectorAll(".panel").forEach(panel => {
+      const input   = panel.querySelector("input[type='number']");
+      const goBtn   = panel.querySelector(".btn-go");
+      const randBtn = panel.querySelector(".btn-rand");
+
+      function go() {
+        const val = parseInt(input.value, 10);
+        if (!isNaN(val)) loadImage(panel, val);
+      }
+
+      goBtn.addEventListener("click", go);
+      input.addEventListener("keydown", e => { if (e.key === "Enter") go(); });
+
+      randBtn.addEventListener("click", () => {
+        const r = imageKeys[Math.floor(Math.random() * imageKeys.length)];
+        input.value = r;
+        loadImage(panel, r);
+      });
+    });
+  </script>
+
+</body>
+</html>
